@@ -7,24 +7,21 @@ public class Sitzungseinladung {
 	
 	static String [] message = new String[2];
 	static Email email = new Email();
-	static String link = "http://localhost/confirmation.php?code=";
+	static String link = "http://192.168.0.2/confirmation.php?userID=";
 	
 	public static void main( String[] args ) throws MessagingException, IOException {
-		System.out.println("POP3 Verbinden");
 		openConnection();
-		System.out.println("POP3 Verbunden, Nachrichten abrufen");
 				
 		boolean newInvitation = getMessages();
 		
 		if(newInvitation) {
-			System.out.println("Neue Einladung erhalten, Email verarbeiten");
 			processEmail();
-			System.out.println("Verarbeitung abgeschlossen, alle Emails versendet, POP3 Verbindung schlieﬂen");
 			closeConnection();
 		} else {
-			System.out.println("Keine neue Einladung, POP3 Verbindung schlieﬂen");
 			closeConnection();
 		}
+		System.out.println("Beendet");
+		System.exit(0);
 	}
 	
 	public static void openConnection() throws MessagingException, IOException {
@@ -35,7 +32,7 @@ public class Sitzungseinladung {
 	public static boolean getMessages() throws MessagingException, IOException {
 		message = email.getMessage();
 		
-		if(message[0] != null || message [1] != null) {
+		if(message[0] == "true") {
 			return true;
 		} else {
 			return false;
@@ -45,11 +42,12 @@ public class Sitzungseinladung {
 	public static void closeConnection() throws MessagingException {
 		email.closeInbox();
 		Datenbank.closeConnection();
-		System.out.println("POP3 und DB Verbindung geschlossen");
 	}
 	
 	@SuppressWarnings("unchecked")
 	public static void processEmail() throws MessagingException {
+		System.out.println("Sitzungseinladung verarbeiten");
+		
 		String htmlTemplate = message[1];
 		int sitzungsID = Integer.parseInt(message[3]);
 		
@@ -61,14 +59,13 @@ public class Sitzungseinladung {
 			String html = htmlTemplate;
 			int code = codes.get(i);
 	
-			html = html.replaceAll("--//--", "<a href=" + link + code + "?confirmation=1?sitzungsid=" + sitzungsID + "><div style='background-color:green'>Ich komme</div></a>" 
-									+ "<a href=" + link + code + "?confirmation=0?sitzungsid=" + sitzungsID + "><div style='background-color:red'>Ich komme nicht</div></a>");
+			html = html.replaceAll("/--/", "<a href=" + link + code + "?confirmation=1?sitzungsID=" + sitzungsID + "><div style='background-color:green'>Ich komme</div></a>" 
+									+ "<a href=" + link + code + "?confirmation=0?sitzungsID=" + sitzungsID + "><div style='background-color:red'>Ich komme nicht</div></a>");
 			
 			email.sendEmailHtml(addresses.get(i), message[2], html);
 
 			System.out.println("Email " + (int)(i + 1) + " von " + addresses.size() + " gesendet");
 		}
-		
-		
+		System.out.println("Senden abgeschlossen");
 	}
 }

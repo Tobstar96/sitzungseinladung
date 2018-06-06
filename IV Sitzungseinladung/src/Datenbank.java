@@ -59,9 +59,6 @@ public class Datenbank {
 		return conn;
 	}
 
-	/**
-	 * Schreibt die Namensliste in die Konsole
-	 */
 	public static ArrayList<ArrayList> getAddressAndCode()
 	{
 		System.out.println("Emailadressen und Codes aus DB abrufen");
@@ -72,9 +69,10 @@ public class Datenbank {
 			// Anfrage-Statement erzeugen.
 			Statement query;
 			try {
+				System.out.println("Mit DB verbunden");
 				query = conn.createStatement();
 
-				String sql = "SELECT Email, Code FROM user";
+				String sql = "SELECT Email, ID FROM user";
 				ResultSet result = query.executeQuery(sql);
 				result.getFetchSize();
 
@@ -83,14 +81,16 @@ public class Datenbank {
 				
 				while (result.next()) {
 					addresses.add(result.getString("Email"));  // Alternativ: result.getString(1);
-					codes.add(result.getInt("Code")); // Alternativ: result.getString(2);
+					codes.add(result.getInt("ID")); // Alternativ: result.getString(2);
 				}
 				
 				ArrayList<ArrayList> list = new ArrayList<ArrayList>();
 				list.add(addresses);
 				list.add(codes);
 
-				System.out.println("Emailadressen und Codes abgerufen");
+				System.out.println("Emailadressen und IDs abgerufen");
+				
+				closeConnection();
 								
 				return list;
 				
@@ -137,7 +137,9 @@ public class Datenbank {
 					sitzungsID = result.getInt("ID");
 				}
 				
-				System.out.println("SitzungsID: " + sitzungsID);
+				System.out.println("SitzungsID ist: " + sitzungsID);
+				
+				closeConnection();
 				
 				return sitzungsID;
 
@@ -150,10 +152,19 @@ public class Datenbank {
 	}
 	
 	public static void closeConnection() {
+		System.out.println("DB Verbindung schlieﬂen");
+		
 		try {
-			conn.close();
+			if(conn != null && !conn.isClosed()) {
+				conn.close();
+				conn = null;
+				System.out.println("DB Verbindung geschlossen");
+			} else {
+				System.out.println("DB Verbindung bereits geschlossen");
+			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Fehler beim Schlieﬂen der DB Verbindung");
+			System.out.println(e.getMessage());
 			e.printStackTrace();
 		}
 	}
